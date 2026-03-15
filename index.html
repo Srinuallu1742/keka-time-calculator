@@ -1,32 +1,32 @@
 <!DOCTYPE html>
 <html>
-
 <head>
 
-<title>Keka Work Time Calculator</title>
+<title>Keka Time Calculator</title>
 
 <style>
 
 body{
 font-family: Arial;
 text-align:center;
-margin-top:50px;
+margin-top:40px;
 }
 
 textarea{
-width:320px;
+width:420px;
 height:200px;
-font-size:16px;
+font-size:15px;
 }
 
 button{
 padding:10px 20px;
-margin-top:10px;
+margin-top:15px;
 font-size:16px;
+cursor:pointer;
 }
 
 .result{
-margin-top:20px;
+margin-top:15px;
 font-size:20px;
 }
 
@@ -38,90 +38,94 @@ font-size:20px;
 
 <h2>Keka Work Calculator</h2>
 
-<p>Paste times (HH:MM or HH:MM:SS)</p>
+<p>Paste your activity logs below</p>
 
-<textarea id="times"></textarea><br>
+<textarea id="input"></textarea><br>
 
 <button onclick="calculate()">Calculate</button>
 
-<div class="result" id="work"></div>
+<div class="result" id="worked"></div>
 <div class="result" id="break"></div>
-<div class="result" id="logout"></div>
+<div class="result" id="expected"></div>
+<div class="result" id="actual"></div>
 
 <script>
 
-function toSeconds(time){
+function parseTime(t){
 
-let p=time.split(":")
+let date = new Date("1970-01-01 " + t)
 
-let h=parseInt(p[0])
-let m=parseInt(p[1])
-let s=p[2]?parseInt(p[2]):0
-
-return h*3600+m*60+s
+return date.getHours()*3600 +
+date.getMinutes()*60 +
+date.getSeconds()
 
 }
 
 function format(sec){
 
-let h=Math.floor(sec/3600)
+let h = Math.floor(sec/3600)
 sec%=3600
 
-let m=Math.floor(sec/60)
-let s=sec%60
+let m = Math.floor(sec/60)
+let s = sec%60
 
-return h.toString().padStart(2,"0")+":"+
-m.toString().padStart(2,"0")+":"+
-s.toString().padStart(2,"0")
+h = h.toString().padStart(2,"0")
+m = m.toString().padStart(2,"0")
+s = s.toString().padStart(2,"0")
+
+return h+":"+m+":"+s
 
 }
 
 function calculate(){
 
-let input=document.getElementById("times").value.trim()
+let text = document.getElementById("input").value
 
-let lines=input.split("\n")
+// extract timestamps like 9:10 AM or 09:10:22 PM
+let matches = text.match(/\b\d{1,2}:\d{2}(:\d{2})?\s?(AM|PM|am|pm)\b/g)
 
-let t=lines.map(x=>toSeconds(x.trim()))
+if(!matches){
+alert("No valid timestamps found")
+return
+}
+
+let times = matches.map(t => parseTime(t))
 
 let work=0
 let br=0
 
-for(let i=0;i<t.length-1;i++){
+for(let i=0;i<times.length-1;i++){
 
-if(i%2==0){
-
-work+=t[i+1]-t[i]
-
-}else{
-
-br+=t[i+1]-t[i]
+if(i%2==0)
+work += times[i+1]-times[i]
+else
+br += times[i+1]-times[i]
 
 }
 
-}
+let required = 8*3600
 
-let required=8*3600
+let remaining = required-work
 
-let remaining=required-work
+let last = times[times.length-1]
 
-let last=t[t.length-1]
+let expectedLogout = last + remaining
 
-let logout=last+remaining
-
-document.getElementById("work").innerHTML=
+document.getElementById("worked").innerHTML =
 "Worked Time: "+format(work)
 
-document.getElementById("break").innerHTML=
+document.getElementById("break").innerHTML =
 "Break Time: "+format(br)
 
-document.getElementById("logout").innerHTML=
-"Expected Logout: "+format(logout)
+document.getElementById("expected").innerHTML =
+"Expected Logout Time: "+format(expectedLogout)
+
+document.getElementById("actual").innerHTML =
+"Last Recorded Logout: "+format(last)
 
 }
 
 </script>
 
 </body>
-
 </html>
