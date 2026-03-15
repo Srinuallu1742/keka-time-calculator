@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Keka Work Time Calculator</title>
+
+<style>
+
+body{
+font-family: Arial;
+text-align:center;
+margin-top:50px;
+}
+
+textarea{
+width:320px;
+height:200px;
+font-size:16px;
+}
+
+button{
+padding:10px 20px;
+margin-top:10px;
+font-size:16px;
+}
+
+.result{
+margin-top:20px;
+font-size:20px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h2>Keka Work Calculator</h2>
+
+<p>Paste times (HH:MM or HH:MM:SS)</p>
+
+<textarea id="times"></textarea><br>
+
+<button onclick="calculate()">Calculate</button>
+
+<div class="result" id="work"></div>
+<div class="result" id="break"></div>
+<div class="result" id="logout"></div>
+
+<script>
+
+function toSeconds(time){
+
+let p=time.split(":")
+
+let h=parseInt(p[0])
+let m=parseInt(p[1])
+let s=p[2]?parseInt(p[2]):0
+
+return h*3600+m*60+s
+
+}
+
+function format(sec){
+
+let h=Math.floor(sec/3600)
+sec%=3600
+
+let m=Math.floor(sec/60)
+let s=sec%60
+
+return h.toString().padStart(2,"0")+":"+
+m.toString().padStart(2,"0")+":"+
+s.toString().padStart(2,"0")
+
+}
+
+function calculate(){
+
+let input=document.getElementById("times").value.trim()
+
+let lines=input.split("\n")
+
+let t=lines.map(x=>toSeconds(x.trim()))
+
+let work=0
+let br=0
+
+for(let i=0;i<t.length-1;i++){
+
+if(i%2==0){
+
+work+=t[i+1]-t[i]
+
+}else{
+
+br+=t[i+1]-t[i]
+
+}
+
+}
+
+let required=8*3600
+
+let remaining=required-work
+
+let last=t[t.length-1]
+
+let logout=last+remaining
+
+document.getElementById("work").innerHTML=
+"Worked Time: "+format(work)
+
+document.getElementById("break").innerHTML=
+"Break Time: "+format(br)
+
+document.getElementById("logout").innerHTML=
+"Expected Logout: "+format(logout)
+
+}
+
+</script>
+
+</body>
+
+</html>
