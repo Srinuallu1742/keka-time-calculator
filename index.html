@@ -53,6 +53,8 @@ font-size:20px;
 
 function parseTime(t){
 
+t = t.replace(/\s+/g,'')
+
 let date = new Date("1970-01-01 " + t)
 
 return date.getHours()*3600 +
@@ -69,11 +71,9 @@ sec%=3600
 let m = Math.floor(sec/60)
 let s = sec%60
 
-h = h.toString().padStart(2,"0")
-m = m.toString().padStart(2,"0")
-s = s.toString().padStart(2,"0")
-
-return h+":"+m+":"+s
+return h.toString().padStart(2,"0")+":"+
+m.toString().padStart(2,"0")+":"+
+s.toString().padStart(2,"0")
 
 }
 
@@ -81,8 +81,11 @@ function calculate(){
 
 let text = document.getElementById("input").value
 
-// extract timestamps like 9:10 AM or 09:10:22 PM
-let matches = text.match(/\b\d{1,2}:\d{2}(:\d{2})?\s?(AM|PM|am|pm)\b/g)
+// remove extra spaces
+text = text.replace(/\s*:\s*/g,":")
+
+// find timestamps
+let matches = text.match(/\b\d{1,2}:\d{2}(:\d{2})?\s?(AM|PM|am|pm)?\b/g)
 
 if(!matches){
 alert("No valid timestamps found")
@@ -118,10 +121,10 @@ document.getElementById("break").innerHTML =
 "Break Time: "+format(br)
 
 document.getElementById("expected").innerHTML =
-"Expected Logout Time: "+format(expectedLogout)
+"Expected Logout: "+format(expectedLogout)
 
 document.getElementById("actual").innerHTML =
-"Last Recorded Logout: "+format(last)
+"Last Recorded Time: "+format(last)
 
 }
 
