@@ -88,25 +88,33 @@ Calculate
 
 function parseTime(t){
 
+// remove spaces like 09: 05: 12 AM → 09:05:12AM
 t = t.replace(/\s+/g,'').toUpperCase()
 
-let match = t.match(/(\d{1,2}):(\d{2})(?::(\d{2}))?(AM|PM)?/)
+let match = t.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?(AM|PM)?$/)
 
-if(!match) return 0
+if(!match) return null
 
 let h = parseInt(match[1])
 let m = parseInt(match[2])
 let s = match[3] ? parseInt(match[3]) : 0
 let period = match[4]
 
-// convert to 24-hour
+// convert 12hr → 24hr
+if(period){
 if(period === "PM" && h !== 12) h += 12
 if(period === "AM" && h === 12) h = 0
+}
+
+// validate
+if(h > 23 || m > 59 || s > 59) return null
 
 return h*3600 + m*60 + s
 }
 
 function format(sec){
+
+if(sec == null || isNaN(sec)) return "00:00:00"
 
 let h = Math.floor(sec/3600)
 sec%=3600
@@ -117,17 +125,16 @@ let s = sec%60
 return h.toString().padStart(2,"0")+":"+
 m.toString().padStart(2,"0")+":"+
 s.toString().padStart(2,"0")
-
 }
 
 function calculate(){
 
 let text = document.getElementById("input").value
 
-// fix spaces like 09: 02: 19 → 09:02:19
+// fix spacing like 09: 05: 12 → 09:05:12
 text = text.replace(/\s*:\s*/g,":")
 
-// extract times (with or without AM/PM)
+// extract timestamps
 let matches = text.match(/\d{1,2}:\d{2}(:\d{2})?\s?(AM|PM|am|pm)?/g)
 
 if(!matches){
@@ -135,22 +142,36 @@ alert("No valid timestamps found")
 return
 }
 
-let times = matches.map(t=>parseTime(t))
+// convert and FILTER invalid ones
+let times = matches.map(t => parseTime(t)).filter(t => t !== null)
 
-let work=0
-let br=0
+if(times.length < 2){
+alert("Not enough valid timestamps")
+return
+}
+
+let work = 0
+let br = 0
 
 for(let i=0;i<times.length-1;i++){
 
-if(i%2===0)
-work += times[i+1]-times[i]
+let diff = times[i+1] - times[i]
+
+// ignore negative values (bad data)
+if(diff < 0) continue
+
+if(i % 2 === 0)
+work += diff
 else
-br += times[i+1]-times[i]
+br += diff
 
 }
 
-let required = 8*3600
+let required = 8 * 3600
 let remaining = required - work
+
+if(remaining < 0) remaining = 0
+
 let last = times[times.length-1]
 let expected = last + remaining
 
@@ -169,6 +190,5 @@ document.getElementById("actual").innerHTML =
 }
 
 </script>
-
 </body>
 </html>
