@@ -88,14 +88,22 @@ Calculate
 
 function parseTime(t){
 
-t = t.replace(/\s+/g,'')
+t = t.replace(/\s+/g,'').toUpperCase()
 
-let date = new Date("1970-01-01 " + t)
+let match = t.match(/(\d{1,2}):(\d{2})(?::(\d{2}))?(AM|PM)?/)
 
-return date.getHours()*3600 +
-date.getMinutes()*60 +
-date.getSeconds()
+if(!match) return 0
 
+let h = parseInt(match[1])
+let m = parseInt(match[2])
+let s = match[3] ? parseInt(match[3]) : 0
+let period = match[4]
+
+// convert to 24-hour
+if(period === "PM" && h !== 12) h += 12
+if(period === "AM" && h === 12) h = 0
+
+return h*3600 + m*60 + s
 }
 
 function format(sec){
